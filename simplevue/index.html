@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+    <span>{{aa}}</span>
+    <div>
+      {{bb}}
+      <div>121212 {{ccc}}</div>
+    </div>
+    <button>{{btntext}}</button>
+    <hr>
+    <div k-text='aa'></div>
+    <input id='input' type="text" k-model='aa'>
+  </div>
+  <script src="./compile.js"></script>
+  <script src="./kVue.js"></script>
+  <script>
+    const vm = new Kvue({
+      el: "#app",
+      data: {
+        aa: "这是我的aaa",
+        bb: "这是我的bbb",
+        ccc: "这是我的ccc",
+        btntext: "按钮文本",
+      }
+    })
+    setTimeout(() => {
+      vm.aa = '2222222222222'
+    }, 1000)
+  </script>
+</body>
+
+</html>
