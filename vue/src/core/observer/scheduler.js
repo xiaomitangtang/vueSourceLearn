@@ -28,6 +28,7 @@ let index = 0
 function resetSchedulerState () {
   index = queue.length = activatedChildren.length = 0
   has = {}
+  // ？？？如果不是产品模式就置为新对象？
   if (process.env.NODE_ENV !== 'production') {
     circular = {}
   }

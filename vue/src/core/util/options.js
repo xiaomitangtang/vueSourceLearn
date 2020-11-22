@@ -386,7 +386,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * Core utility used in both instantiation and inheritance.
  */
 export function mergeOptions (
-  parent: Object,
+  parent: Object,//Vue
   child: Object,
   vm?: Component
 ): Object {

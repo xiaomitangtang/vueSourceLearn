@@ -4,9 +4,10 @@ import { extend } from 'shared/util'
 import { detectErrors } from './error-detector'
 import { createCompileToFunctionFn } from './to-function'
 
-export function createCompilerCreator (baseCompile: Function): Function {
-  return function createCompiler (baseOptions: CompilerOptions) {
-    function compile (
+export function createCompilerCreator(baseCompile: Function): Function {
+
+  return function createCompiler(baseOptions: CompilerOptions) {
+    function compile(
       template: string,
       options?: CompilerOptions
     ): CompiledResult {
@@ -21,6 +22,14 @@ export function createCompilerCreator (baseCompile: Function): Function {
       if (options) {
         if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
           // $flow-disable-line
+          // \d 0-9
+          // \D ^0-9
+          // \w 字母数字下划线
+          // \W 非数字字母下换线
+          // \s 空格 换行符制表符空格符
+          // \S 非空格字符
+          // \b 词边界
+          // \B 词内部
           const leadingSpaceLength = template.match(/^\s*/)[0].length
 
           warn = (msg, range, tip) => {

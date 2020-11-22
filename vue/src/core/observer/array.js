@@ -43,3 +43,4 @@ methodsToPatch.forEach(function (method) {
     return result
   })
 })
+// 劫持  数组的异变函数，进行reactive 并对新增项进行监听

@@ -15,7 +15,7 @@ import {
 import { createEmptyVNode } from 'core/vdom/vnode'
 import { currentRenderingInstance } from 'core/instance/render'
 
-function ensureCtor (comp: any, base) {
+function ensureCtor(comp: any, base) {
   if (
     comp.__esModule ||
     (hasSymbol && comp[Symbol.toStringTag] === 'Module')
@@ -27,7 +27,7 @@ function ensureCtor (comp: any, base) {
     : comp
 }
 
-export function createAsyncPlaceholder (
+export function createAsyncPlaceholder(
   factory: Function,
   data: ?VNodeData,
   context: Component,
@@ -40,7 +40,7 @@ export function createAsyncPlaceholder (
   return node
 }
 
-export function resolveAsyncComponent (
+export function resolveAsyncComponent(
   factory: Function,
   baseCtor: Class<Component>
 ): Class<Component> | void {
@@ -68,8 +68,8 @@ export function resolveAsyncComponent (
     let timerLoading = null
     let timerTimeout = null
 
-    ;(owner: any).$on('hook:destroyed', () => remove(owners, owner))
-
+      ; (owner: any).$on('hook:destroyed', () => remove(owners, owner))
+    // 组件加载完成后   调用forceUpdate
     const forceRender = (renderCompleted: boolean) => {
       for (let i = 0, l = owners.length; i < l; i++) {
         (owners[i]: any).$forceUpdate()

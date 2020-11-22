@@ -57,7 +57,7 @@ let platformMustUseProp
 let platformGetTagNamespace
 let maybeComponent
 
-export function createASTElement (
+export function createASTElement(
   tag: string,
   attrs: Array<ASTAttr>,
   parent: ASTElement | void
@@ -76,15 +76,30 @@ export function createASTElement (
 /**
  * Convert HTML string to AST.
  */
-export function parse (
+export function parse(
   template: string,
   options: CompilerOptions
 ): ASTElement | void {
   warn = options.warn || baseWarn
-
+                      // 就是判断 tag===pre
   platformIsPreTag = options.isPreTag || no
+
+
+  /*
+  export const mustUseProp = (tag: string, type: ?string, attr: string): boolean => {
+  return (
+    (attr === 'value' && acceptValue(tag)) && type !== 'button' ||
+    (attr === 'selected' && tag === 'option') ||
+    (attr === 'checked' && tag === 'input') ||
+    (attr === 'muted' && tag === 'video')
+  )
+}
+
+  */
+//  判断属性和标签是否匹配？
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
+  // 判断是否是html、标签或者 svg相关标签   保留标签？？
   const isReservedTag = options.isReservedTag || no
   maybeComponent = (el: ASTElement) => !!el.component || !isReservedTag(el.tag)
 
@@ -103,14 +118,14 @@ export function parse (
   let inPre = false
   let warned = false
 
-  function warnOnce (msg, range) {
+  function warnOnce(msg, range) {
     if (!warned) {
       warned = true
       warn(msg, range)
     }
   }
 
-  function closeElement (element) {
+  function closeElement(element) {
     trimEndingWhitespace(element)
     if (!inVPre && !element.processed) {
       element = processElement(element, options)
@@ -144,7 +159,7 @@ export function parse (
           // keep it in the children list so that v-else(-if) conditions can
           // find it as the prev node.
           const name = element.slotTarget || '"default"'
-          ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element
+            ; (currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element
         }
         currentParent.children.push(element)
         element.parent = currentParent
@@ -170,7 +185,7 @@ export function parse (
     }
   }
 
-  function trimEndingWhitespace (el) {
+  function trimEndingWhitespace(el) {
     // remove trailing whitespace node
     if (!inPre) {
       let lastNode
@@ -184,7 +199,7 @@ export function parse (
     }
   }
 
-  function checkRootConstraints (el) {
+  function checkRootConstraints(el) {
     if (el.tag === 'slot' || el.tag === 'template') {
       warnOnce(
         `Cannot use <${el.tag}> as component root element because it may ` +
@@ -210,7 +225,8 @@ export function parse (
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
-    start (tag, attrs, unary, start, end) {
+    // 遇到开始标签就执行start
+    start(tag, attrs, unary, start, end) {
       // check namespace.
       // inherit parent ns if there is one
       const ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag)
@@ -297,7 +313,7 @@ export function parse (
       }
     },
 
-    end (tag, start, end) {
+    end(tag, start, end) {
       const element = stack[stack.length - 1]
       // pop stack
       stack.length -= 1
@@ -308,7 +324,7 @@ export function parse (
       closeElement(element)
     },
 
-    chars (text: string, start: number, end: number) {
+    chars(text: string, start: number, end: number) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
@@ -379,7 +395,7 @@ export function parse (
         }
       }
     },
-    comment (text: string, start, end) {
+    comment(text: string, start, end) {
       // adding anyting as a sibling to the root node is forbidden
       // comments should still be allowed, but ignored
       if (currentParent) {
@@ -399,13 +415,13 @@ export function parse (
   return root
 }
 
-function processPre (el) {
+function processPre(el) {
   if (getAndRemoveAttr(el, 'v-pre') != null) {
     el.pre = true
   }
 }
 
-function processRawAttrs (el) {
+function processRawAttrs(el) {
   const list = el.attrsList
   const len = list.length
   if (len) {
@@ -426,7 +442,7 @@ function processRawAttrs (el) {
   }
 }
 
-export function processElement (
+export function processElement(
   element: ASTElement,
   options: CompilerOptions
 ) {
@@ -451,7 +467,7 @@ export function processElement (
   return element
 }
 
-function processKey (el) {
+function processKey(el) {
   const exp = getBindingAttr(el, 'key')
   if (exp) {
     if (process.env.NODE_ENV !== 'production') {
@@ -478,7 +494,7 @@ function processKey (el) {
   }
 }
 
-function processRef (el) {
+function processRef(el) {
   const ref = getBindingAttr(el, 'ref')
   if (ref) {
     el.ref = ref
@@ -486,7 +502,7 @@ function processRef (el) {
   }
 }
 
-export function processFor (el: ASTElement) {
+export function processFor(el: ASTElement) {
   let exp
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
     const res = parseFor(exp)
@@ -508,7 +524,7 @@ type ForParseResult = {
   iterator2?: string;
 };
 
-export function parseFor (exp: string): ?ForParseResult {
+export function parseFor(exp: string): ?ForParseResult {
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
   const res = {}
@@ -527,7 +543,7 @@ export function parseFor (exp: string): ?ForParseResult {
   return res
 }
 
-function processIf (el) {
+function processIf(el) {
   const exp = getAndRemoveAttr(el, 'v-if')
   if (exp) {
     el.if = exp
@@ -546,7 +562,7 @@ function processIf (el) {
   }
 }
 
-function processIfConditions (el, parent) {
+function processIfConditions(el, parent) {
   const prev = findPrevElement(parent.children)
   if (prev && prev.if) {
     addIfCondition(prev, {
@@ -562,7 +578,7 @@ function processIfConditions (el, parent) {
   }
 }
 
-function findPrevElement (children: Array<any>): ASTElement | void {
+function findPrevElement(children: Array<any>): ASTElement | void {
   let i = children.length
   while (i--) {
     if (children[i].type === 1) {
@@ -580,14 +596,14 @@ function findPrevElement (children: Array<any>): ASTElement | void {
   }
 }
 
-export function addIfCondition (el: ASTElement, condition: ASTIfCondition) {
+export function addIfCondition(el: ASTElement, condition: ASTIfCondition) {
   if (!el.ifConditions) {
     el.ifConditions = []
   }
   el.ifConditions.push(condition)
 }
 
-function processOnce (el) {
+function processOnce(el) {
   const once = getAndRemoveAttr(el, 'v-once')
   if (once != null) {
     el.once = true
@@ -596,7 +612,7 @@ function processOnce (el) {
 
 // handle content being passed to a component as slot,
 // e.g. <template slot="xxx">, <div slot-scope="xxx">
-function processSlotContent (el) {
+function processSlotContent(el) {
   let slotScope
   if (el.tag === 'template') {
     slotScope = getAndRemoveAttr(el, 'scope')
@@ -711,7 +727,7 @@ function processSlotContent (el) {
   }
 }
 
-function getSlotName (binding) {
+function getSlotName(binding) {
   let name = binding.name.replace(slotRE, '')
   if (!name) {
     if (binding.name[0] !== '#') {
@@ -731,7 +747,7 @@ function getSlotName (binding) {
 }
 
 // handle <slot/> outlets
-function processSlotOutlet (el) {
+function processSlotOutlet(el) {
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
@@ -745,7 +761,7 @@ function processSlotOutlet (el) {
   }
 }
 
-function processComponent (el) {
+function processComponent(el) {
   let binding
   if ((binding = getBindingAttr(el, 'is'))) {
     el.component = binding
@@ -755,7 +771,7 @@ function processComponent (el) {
   }
 }
 
-function processAttrs (el) {
+function processAttrs(el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, syncGen, isDynamic
   for (i = 0, l = list.length; i < l; i++) {
@@ -884,15 +900,15 @@ function processAttrs (el) {
       // #6887 firefox doesn't update muted state if set via attribute
       // even immediately after element creation
       if (!el.component &&
-          name === 'muted' &&
-          platformMustUseProp(el.tag, el.attrsMap.type, name)) {
+        name === 'muted' &&
+        platformMustUseProp(el.tag, el.attrsMap.type, name)) {
         addProp(el, name, 'true', list[i])
       }
     }
   }
 }
 
-function checkInFor (el: ASTElement): boolean {
+function checkInFor(el: ASTElement): boolean {
   let parent = el
   while (parent) {
     if (parent.for !== undefined) {
@@ -903,7 +919,7 @@ function checkInFor (el: ASTElement): boolean {
   return false
 }
 
-function parseModifiers (name: string): Object | void {
+function parseModifiers(name: string): Object | void {
   const match = name.match(modifierRE)
   if (match) {
     const ret = {}
@@ -912,7 +928,7 @@ function parseModifiers (name: string): Object | void {
   }
 }
 
-function makeAttrsMap (attrs: Array<Object>): Object {
+function makeAttrsMap(attrs: Array<Object>): Object {
   const map = {}
   for (let i = 0, l = attrs.length; i < l; i++) {
     if (
@@ -927,11 +943,11 @@ function makeAttrsMap (attrs: Array<Object>): Object {
 }
 
 // for script (e.g. type="x/template") or style, do not decode content
-function isTextTag (el): boolean {
+function isTextTag(el): boolean {
   return el.tag === 'script' || el.tag === 'style'
 }
 
-function isForbiddenTag (el): boolean {
+function isForbiddenTag(el): boolean {
   return (
     el.tag === 'style' ||
     (el.tag === 'script' && (
@@ -945,7 +961,7 @@ const ieNSBug = /^xmlns:NS\d+/
 const ieNSPrefix = /^NS\d+:/
 
 /* istanbul ignore next */
-function guardIESVGBug (attrs) {
+function guardIESVGBug(attrs) {
   const res = []
   for (let i = 0; i < attrs.length; i++) {
     const attr = attrs[i]
@@ -957,7 +973,7 @@ function guardIESVGBug (attrs) {
   return res
 }
 
-function checkForAliasModel (el, value) {
+function checkForAliasModel(el, value) {
   let _el = el
   while (_el) {
     if (_el.for && _el.alias === value) {

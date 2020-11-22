@@ -4,7 +4,7 @@ import { hasOwn } from 'shared/util'
 import { warn, hasSymbol } from '../util/index'
 import { defineReactive, toggleObserving } from '../observer/index'
 
-export function initProvide (vm: Component) {
+export function initProvide(vm: Component) {
   const provide = vm.$options.provide
   if (provide) {
     vm._provided = typeof provide === 'function'
@@ -13,7 +13,7 @@ export function initProvide (vm: Component) {
   }
 }
 
-export function initInjections (vm: Component) {
+export function initInjections(vm: Component) {
   const result = resolveInject(vm.$options.inject, vm)
   if (result) {
     toggleObserving(false)
@@ -36,7 +36,7 @@ export function initInjections (vm: Component) {
   }
 }
 
-export function resolveInject (inject: any, vm: Component): ?Object {
+export function resolveInject(inject: any, vm: Component): ?Object {
   if (inject) {
     // inject is :any because flow is not smart enough to figure out cached
     const result = Object.create(null)
@@ -50,7 +50,10 @@ export function resolveInject (inject: any, vm: Component): ?Object {
       if (key === '__ob__') continue
       const provideKey = inject[key].from
       let source = vm
+      // 从自己开始，在【rovided中查询是否提供  找到就赋值给result
+
       while (source) {
+        // _provided由initProvide提供
         if (source._provided && hasOwn(source._provided, provideKey)) {
           result[key] = source._provided[provideKey]
           break

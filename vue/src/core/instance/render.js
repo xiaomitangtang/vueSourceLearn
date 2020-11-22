@@ -16,8 +16,9 @@ import VNode, { createEmptyVNode } from '../vdom/vnode'
 
 import { isUpdatingChildComponent } from './lifecycle'
 
-export function initRender (vm: Component) {
+export function initRender(vm: Component) {
   vm._vnode = null // the root of the child tree
+  // 初始化时 vnode 为null
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
@@ -54,11 +55,11 @@ export function initRender (vm: Component) {
 export let currentRenderingInstance: Component | null = null
 
 // for testing only
-export function setCurrentRenderingInstance (vm: Component) {
+export function setCurrentRenderingInstance(vm: Component) {
   currentRenderingInstance = vm
 }
 
-export function renderMixin (Vue: Class<Component>) {
+export function renderMixin(Vue: Class<Component>) {
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype)
 
@@ -87,7 +88,9 @@ export function renderMixin (Vue: Class<Component>) {
       // There's no need to maintain a stack because all render fns are called
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
+      // 全局可访问的正在执行render的实例
       currentRenderingInstance = vm
+      // _renderProxy  就是vm   createElement 就是h
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)

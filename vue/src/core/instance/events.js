@@ -9,6 +9,7 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
+// 吧父组件的事件进行监听
 export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   vm._hasHookEvent = false

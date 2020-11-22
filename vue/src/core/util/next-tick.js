@@ -9,8 +9,8 @@ export let isUsingMicroTask = false
 
 const callbacks = []
 let pending = false
-
-function flushCallbacks () {
+// 浏览器会在把所有微任务清空之后才去刷新页面，所以这样虽然dom事在每一个钩子分别更新，但是一样是批量操作
+function flushCallbacks() {
   pending = false
   const copies = callbacks.slice(0)
   callbacks.length = 0
@@ -84,7 +84,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   }
 }
 
-export function nextTick (cb?: Function, ctx?: Object) {
+export function nextTick(cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
     if (cb) {

@@ -27,6 +27,7 @@ const comment = /^<!\--/
 const conditionalComment = /^<!\[/
 
 // Special Elements (can contain anything)
+// 生成一个  函数 ，可以判断是否是  style、script  text 标签  这三个标签不进行解析
 export const isPlainTextElement = makeMap('script,style,textarea', true)
 const reCache = {}
 
@@ -58,6 +59,7 @@ export function parseHTML (html, options) {
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
   let index = 0
   let last, lastTag
+  // 对字符串进行解析
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style

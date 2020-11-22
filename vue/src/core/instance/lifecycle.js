@@ -29,10 +29,11 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
-export function initLifecycle (vm: Component) {
+export function initLifecycle(vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
+  // 找到parent 和递归找到root  往父级children加入自己
   let parent = options.parent
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
@@ -55,7 +56,7 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
-export function lifecycleMixin (Vue: Class<Component>) {
+export function lifecycleMixin(Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -65,20 +66,25 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
+      // 如果存在前一个vdom  则进行patch对比 diff跟新
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
+      // 否则会进行挂载mounted
       // updates
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     restoreActiveInstance()
     // update __vue__ reference
+    // 去掉旧的dom指向  vue实例  ？？？垃圾回收？？？
     if (prevEl) {
       prevEl.__vue__ = null
     }
     if (vm.$el) {
+      // 将新的dom __vue__指向vm
       vm.$el.__vue__ = vm
     }
+    // 高阶组件？？？？指向同一个dom
     // if parent is an HOC, update its $el as well
     if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
       vm.$parent.$el = vm.$el
@@ -103,10 +109,12 @@ export function lifecycleMixin (Vue: Class<Component>) {
     vm._isBeingDestroyed = true
     // remove self from parent
     const parent = vm.$parent
+    // 从父组件的children移除
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
       remove(parent.$children, vm)
     }
     // teardown watchers
+    // 清理watcher
     if (vm._watcher) {
       vm._watcher.teardown()
     }
@@ -138,16 +146,19 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
-export function mountComponent (
+export function mountComponent(
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
   vm.$el = el
+  // 如果没有render  指向 createEmptyVNode
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
+      // 如果template指向的是一个节点id   （#app）运行时环境没有编译器  报错
+      // 结果就是运行时不允许使用template
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
         vm.$options.el || el) {
         warn(
@@ -166,6 +177,9 @@ export function mountComponent (
   }
   callHook(vm, 'beforeMount')
 
+
+  // 每一个组件的mount  都生成了一个更新组件的函数，这个函数调用  _update进行更新
+  // ——update 调用__patch__进行dom比对更新dom
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -176,6 +190,7 @@ export function mountComponent (
       const endTag = `vue-perf-end:${id}`
 
       mark(startTag)
+      // 来自 renderMixin
       const vnode = vm._render()
       mark(endTag)
       measure(`vue ${name} render`, startTag, endTag)
@@ -194,8 +209,9 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 组件的watcher  没有getter  但是有回调函数
   new Watcher(vm, updateComponent, noop, {
-    before () {
+    before() {
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
@@ -212,7 +228,7 @@ export function mountComponent (
   return vm
 }
 
-export function updateChildComponent (
+export function updateChildComponent(
   vm: Component,
   propsData: ?Object,
   listeners: ?Object,
@@ -292,14 +308,14 @@ export function updateChildComponent (
   }
 }
 
-function isInInactiveTree (vm) {
+function isInInactiveTree(vm) {
   while (vm && (vm = vm.$parent)) {
     if (vm._inactive) return true
   }
   return false
 }
 
-export function activateChildComponent (vm: Component, direct?: boolean) {
+export function activateChildComponent(vm: Component, direct?: boolean) {
   if (direct) {
     vm._directInactive = false
     if (isInInactiveTree(vm)) {
@@ -317,7 +333,7 @@ export function activateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
-export function deactivateChildComponent (vm: Component, direct?: boolean) {
+export function deactivateChildComponent(vm: Component, direct?: boolean) {
   if (direct) {
     vm._directInactive = true
     if (isInInactiveTree(vm)) {
@@ -333,7 +349,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
-export function callHook (vm: Component, hook: string) {
+export function callHook(vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
   const handlers = vm.$options[hook]

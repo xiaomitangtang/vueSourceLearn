@@ -31,7 +31,7 @@ export const transitionProps = {
 
 // in case the child is also an abstract component, e.g. <keep-alive>
 // we want to recursively retrieve the real component to be rendered
-function getRealChild (vnode: ?VNode): ?VNode {
+function getRealChild(vnode: ?VNode): ?VNode {
   const compOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions
   if (compOptions && compOptions.Ctor.options.abstract) {
     return getRealChild(getFirstComponentChild(compOptions.children))
@@ -40,7 +40,7 @@ function getRealChild (vnode: ?VNode): ?VNode {
   }
 }
 
-export function extractTransitionData (comp: Component): Object {
+export function extractTransitionData(comp: Component): Object {
   const data = {}
   const options: ComponentOptions = comp.$options
   // props
@@ -56,7 +56,7 @@ export function extractTransitionData (comp: Component): Object {
   return data
 }
 
-function placeholder (h: Function, rawChild: VNode): ?VNode {
+function placeholder(h: Function, rawChild: VNode): ?VNode {
   if (/\d-keep-alive$/.test(rawChild.tag)) {
     return h('keep-alive', {
       props: rawChild.componentOptions.propsData
@@ -64,7 +64,7 @@ function placeholder (h: Function, rawChild: VNode): ?VNode {
   }
 }
 
-function hasParentTransition (vnode: VNode): ?boolean {
+function hasParentTransition(vnode: VNode): ?boolean {
   while ((vnode = vnode.parent)) {
     if (vnode.data.transition) {
       return true
@@ -72,7 +72,7 @@ function hasParentTransition (vnode: VNode): ?boolean {
   }
 }
 
-function isSameChild (child: VNode, oldChild: VNode): boolean {
+function isSameChild(child: VNode, oldChild: VNode): boolean {
   return oldChild.key === child.key && oldChild.tag === child.tag
 }
 
@@ -83,10 +83,11 @@ const isVShowDirective = d => d.name === 'show'
 export default {
   name: 'transition',
   props: transitionProps,
-  abstract: true,
+  abstract: true,//抽象组件
 
-  render (h: Function) {
+  render(h: Function) {
     let children: any = this.$slots.default
+    // 取出默认插槽
     if (!children) {
       return
     }
@@ -109,7 +110,7 @@ export default {
 
     const mode: string = this.mode
 
-    // warn invalid mode
+    // warn invalid mode  in-out   out-in
     if (process.env.NODE_ENV !== 'production' &&
       mode && mode !== 'in-out' && mode !== 'out-in'
     ) {
@@ -129,6 +130,7 @@ export default {
 
     // apply transition data to child
     // use getRealChild() to ignore abstract components e.g. keep-alive
+    // 调过抽象组件 找到需要动画的组件
     const child: ?VNode = getRealChild(rawChild)
     /* istanbul ignore if */
     if (!child) {

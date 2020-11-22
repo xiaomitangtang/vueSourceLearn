@@ -16,12 +16,16 @@ function Vue(options) {
   this._init(options)
 }
 
-initMixin(Vue)//实现Vue的原型  _init  函数  调用 beforeCreate  created 钩子
-// 可以解释，为什么created之前不能使用this
+initMixin(Vue)//实现Vue的原型  _init
+// 初始化 数据  prop  data  methods watch computed等动态监听
+
+
+
+
 stateMixin(Vue)//挂载$data $props  $set $delete $watch  工具函数
 // $watch   返回的是 unwatch  可以用于取消监听
 // $watch 第一个参数可以传字符串，也可以传函数，函数形式监听的是其返回值，返回值变化触发钩子
-//
+//定义  $data  $props $set $delete $watch
 
 
 
@@ -35,6 +39,20 @@ eventsMixin(Vue)//挂载 $on   $on可以接收事件名数组   $once  $off
 // 移除是数组逆向遍历，所以，，不要传空的箭头函数。。。
 // $emit  触发当前实例的所有监听对应的名字，  自己触发 自己监听！！！！
 lifecycleMixin(Vue)
-renderMixin(Vue)
+//  _update  定义
+// $destroy $forceUpdate挂载
+// destory 完成之后  再去取消监听函数
+// forceUpdate 本质  是执行组件实例的watcher的update
+// destory
+// 从父组件children中移除自己
+// wacther的销毁
+// data的vmCount --
+// 通过__pathch__(vnode,null) 卸载dom
+// 调用钩子函数
+// 卸载监听函数
+// 去掉dom的__vue__指向
 
+
+renderMixin(Vue)
+// 挂载 $nextTick    _render
 export default Vue

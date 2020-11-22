@@ -24,7 +24,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  */
 export let shouldObserve: boolean = true
 
-export function toggleObserving (value: boolean) {
+export function toggleObserving(value: boolean) {
   shouldObserve = value
 }
 
@@ -34,18 +34,21 @@ export function toggleObserving (value: boolean) {
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
  */
+// 每个 Observer有 value  dep  并且在value中绑定了 __ob__指向自己
 export class Observer {
   value: any;
   dep: Dep;
   vmCount: number; // number of vms that have this object as root $data
 
-  constructor (value: any) {
+  constructor(value: any) {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
+    // 如果是数组，挨个 oberve，如果是对象直接obserbe
     if (Array.isArray(value)) {
       if (hasProto) {
+        // 如果环境中存在原型，就使用劫持的数组原型进行替换
         protoAugment(value, arrayMethods)
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
@@ -61,7 +64,7 @@ export class Observer {
    * getter/setters. This method should only be called when
    * value type is Object.
    */
-  walk (obj: Object) {
+  walk(obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
       defineReactive(obj, keys[i])
@@ -71,7 +74,7 @@ export class Observer {
   /**
    * Observe a list of Array items.
    */
-  observeArray (items: Array<any>) {
+  observeArray(items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i])
     }
@@ -84,7 +87,7 @@ export class Observer {
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
  */
-function protoAugment (target, src: Object) {
+function protoAugment(target, src: Object) {
   /* eslint-disable no-proto */
   target.__proto__ = src
   /* eslint-enable no-proto */
@@ -95,7 +98,7 @@ function protoAugment (target, src: Object) {
  * hidden properties.
  */
 /* istanbul ignore next */
-function copyAugment (target: Object, src: Object, keys: Array<string>) {
+function copyAugment(target: Object, src: Object, keys: Array<string>) {
   for (let i = 0, l = keys.length; i < l; i++) {
     const key = keys[i]
     def(target, key, src[key])
@@ -107,7 +110,8 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-export function observe (value: any, asRootData: ?boolean): Observer | void {
+// 直接对数组的每一项使用 传入为 数组每一项  oberve==>Observer  然后Observer==》oberve递归调用
+export function observe(value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -132,7 +136,8 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 /**
  * Define a reactive property on an Object.
  */
-export function defineReactive (
+// 每一个key有一个dep  每一个对象有一个dep   简单类型不会有
+export function defineReactive(
   obj: Object,
   key: string,
   val: any,
@@ -140,8 +145,9 @@ export function defineReactive (
   shallow?: boolean
 ) {
   const dep = new Dep()
-
+  // 每一个key绑定一个dep  和vue1 一致
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 此处解释，Object.freeze  可以跳过双向绑定
   if (property && property.configurable === false) {
     return
   }
@@ -149,17 +155,20 @@ export function defineReactive (
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
+  // 如果没有get 或者写了set
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  // 一般 shallow 为false  即  深度监听 childOb也是 Observer实例
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get: function reactiveGetter () {
+    get: function reactiveGetter() {
       const value = getter ? getter.call(obj) : val
+      // 如果有wacher  就加入watcher  进行依赖收集
       if (Dep.target) {
+        // 这个target
         dep.depend()
         if (childOb) {
           childOb.dep.depend()
@@ -170,7 +179,7 @@ export function defineReactive (
       }
       return value
     },
-    set: function reactiveSetter (newVal) {
+    set: function reactiveSetter(newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -187,7 +196,9 @@ export function defineReactive (
       } else {
         val = newVal
       }
+      // 新值要进一步绑定
       childOb = !shallow && observe(newVal)
+      // 挨个执行watcher的  update  进一步执行更新队列
       dep.notify()
     }
   })
@@ -198,21 +209,28 @@ export function defineReactive (
  * triggers change notification if the property doesn't
  * already exist.
  */
-export function set (target: Array<any> | Object, key: any, val: any): any {
+
+//  Vue的 $set
+export function set(target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  // vue响应式的数组   对象 已经响应过  所以直接设置即可
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
+    // 使用val替换key位置的值
     target.splice(key, 1, val)
     return val
   }
+  // 每一个以前的key都有dep  所以会直接触发set  并深度ob
   if (key in target && !(key in Object.prototype)) {
     target[key] = val
     return val
   }
+  // 以上两种不符合  即表示是初始化未定义的新key
+  // 实例不允许使用￥set
   const ob = (target: any).__ob__
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
@@ -221,6 +239,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     )
     return val
   }
+  // 如果target不是一个响应式对象，此方法无用？？？？
   if (!ob) {
     target[key] = val
     return val
@@ -233,7 +252,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
 /**
  * Delete a property and trigger change if necessary.
  */
-export function del (target: Array<any> | Object, key: any) {
+export function del(target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -251,10 +270,12 @@ export function del (target: Array<any> | Object, key: any) {
     )
     return
   }
+  // 不是本身属性  不管
   if (!hasOwn(target, key)) {
     return
   }
   delete target[key]
+  // 没有建听过  不管
   if (!ob) {
     return
   }
@@ -265,7 +286,8 @@ export function del (target: Array<any> | Object, key: any) {
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
  */
-function dependArray (value: Array<any>) {
+// 多维数组
+function dependArray(value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {
     e = value[i]
     e && e.__ob__ && e.__ob__.dep.depend()

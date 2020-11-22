@@ -34,7 +34,7 @@ function updateAttrs (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if (isDef(attrs.__ob__)) {
     attrs = vnode.data.attrs = extend({}, attrs)
   }
-
+// 如果   new 有 并且与old不同  并且不同就设置
   for (key in attrs) {
     cur = attrs[key]
     old = oldAttrs[key]
@@ -48,6 +48,7 @@ function updateAttrs (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if ((isIE || isEdge) && attrs.value !== oldAttrs.value) {
     setAttr(elm, 'value', attrs.value)
   }
+  // 如果old有  new 没有 就remove
   for (key in oldAttrs) {
     if (isUndef(attrs[key])) {
       if (isXlink(key)) {

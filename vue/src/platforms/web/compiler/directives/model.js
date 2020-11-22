@@ -11,7 +11,7 @@ let warn
 export const RANGE_TOKEN = '__r'
 export const CHECKBOX_RADIO_TOKEN = '__c'
 
-export default function model (
+export default function model(
   el: ASTElement,
   dir: ASTDirective,
   _warn: Function
@@ -35,6 +35,7 @@ export default function model (
   }
 
   if (el.component) {
+    // 如果是组件的  走组件的一套  根据不同的类型 走不同的生成函数
     genComponentModel(el, value, modifiers)
     // component v-model doesn't need extra runtime
     return false
@@ -64,7 +65,7 @@ export default function model (
   return true
 }
 
-function genCheckboxModel (
+function genCheckboxModel(
   el: ASTElement,
   value: string,
   modifiers: ?ASTModifiers
@@ -83,19 +84,19 @@ function genCheckboxModel (
   )
   addHandler(el, 'change',
     `var $$a=${value},` +
-        '$$el=$event.target,' +
-        `$$c=$$el.checked?(${trueValueBinding}):(${falseValueBinding});` +
+    '$$el=$event.target,' +
+    `$$c=$$el.checked?(${trueValueBinding}):(${falseValueBinding});` +
     'if(Array.isArray($$a)){' +
-      `var $$v=${number ? '_n(' + valueBinding + ')' : valueBinding},` +
-          '$$i=_i($$a,$$v);' +
-      `if($$el.checked){$$i<0&&(${genAssignmentCode(value, '$$a.concat([$$v])')})}` +
-      `else{$$i>-1&&(${genAssignmentCode(value, '$$a.slice(0,$$i).concat($$a.slice($$i+1))')})}` +
+    `var $$v=${number ? '_n(' + valueBinding + ')' : valueBinding},` +
+    '$$i=_i($$a,$$v);' +
+    `if($$el.checked){$$i<0&&(${genAssignmentCode(value, '$$a.concat([$$v])')})}` +
+    `else{$$i>-1&&(${genAssignmentCode(value, '$$a.slice(0,$$i).concat($$a.slice($$i+1))')})}` +
     `}else{${genAssignmentCode(value, '$$c')}}`,
     null, true
   )
 }
 
-function genRadioModel (
+function genRadioModel(
   el: ASTElement,
   value: string,
   modifiers: ?ASTModifiers
@@ -107,7 +108,7 @@ function genRadioModel (
   addHandler(el, 'change', genAssignmentCode(value, valueBinding), null, true)
 }
 
-function genSelect (
+function genSelect(
   el: ASTElement,
   value: string,
   modifiers: ?ASTModifiers
@@ -124,7 +125,7 @@ function genSelect (
   addHandler(el, 'change', code, null, true)
 }
 
-function genDefaultModel (
+function genDefaultModel(
   el: ASTElement,
   value: string,
   modifiers: ?ASTModifiers
@@ -148,6 +149,7 @@ function genDefaultModel (
 
   const { lazy, number, trim } = modifiers || {}
   const needCompositionGuard = !lazy && type !== 'range'
+  // 如果是lazy 绑定的事件就是chage 否则是input
   const event = lazy
     ? 'change'
     : type === 'range'
@@ -166,7 +168,7 @@ function genDefaultModel (
   if (needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
   }
-
+  // 把 v-modle  转换成  ：value  @input 或者@change
   addProp(el, 'value', `(${value})`)
   addHandler(el, event, code, null, true)
   if (trim || number) {

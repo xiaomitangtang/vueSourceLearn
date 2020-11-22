@@ -43,16 +43,18 @@ export default class Watcher {
   value: any;
 
   constructor (
-    vm: Component,
-    expOrFn: string | Function,
-    cb: Function,
-    options?: ?Object,
+    vm: Component,//vue实例
+    expOrFn: string | Function,//getter
+    cb: Function,//回调函数
+    options?: ?Object,//配置对象
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
+    // 猜想应该是组件渲染  一个组件对应一个watcher
     if (isRenderWatcher) {
       vm._watcher = this
     }
+    // 一个组件对应的所有watchers  computed 每个key  watch对象每个key
     vm._watchers.push(this)
     // options
     if (options) {
@@ -98,11 +100,12 @@ export default class Watcher {
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
-  get () {
+  get   () {
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // computed  指定上下文  computed没有传user  获取computed时，或指定依赖数据的get  因为此时Dep.target 指向  this  所以对应的数据依赖里收集了  这个watcher
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {

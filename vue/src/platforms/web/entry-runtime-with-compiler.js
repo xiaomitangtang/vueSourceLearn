@@ -38,7 +38,7 @@ Vue.prototype.$mount = function (
   // resolve template/el and convert to render function
 
 
-  // 顺序    render>template>el
+  // 顺序    render > template  > el
   // template顺序   选择器>节点   没有template 会尝试使用  el作为内容
   // 如果  没有render  没有template  没有el  就报错
   if (!options.render) {
